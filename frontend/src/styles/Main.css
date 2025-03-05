@@ -1,0 +1,75 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #fdf9d8;
+    margin: 0;
+    padding: 0;
+}
+
+.auth-container, .dashboard {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: #fff491;
+    padding: 2rem;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.auth-container h2, .dashboard h2 {
+    text-align: center;
+    color: rgb(139, 165, 249);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+form input, form textarea, form button {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    font-size: 1rem;
+}
+
+.tasks-list {
+    margin-top: 2rem;
+}
+
+.task-item {
+    background: #ff9d42;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.task-item h3 {
+    color: #126a21;
+}
+
+
+.task-item.completed {
+    background: #7aff7f;
+    text-decoration: line-through;
+}
+
+.task-item .actions button {
+    margin-right: 0.5rem;
+}
+
+.error {
+    color: rgb(255, 0, 0);
+    text-align: center;
+}
+
+.warning {
+    color: rgb(246, 255, 0);
+    font-weight: bold;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .auth-container, .dashboard {
+        margin: 1rem;
+        padding: 1rem;
+    }
+}
