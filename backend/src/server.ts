@@ -1,84 +1,37 @@
-import { Request, Response } from 'express';
-import User from './models/User';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { validationResult } from 'express-validator';
+import express, { Application } from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
 
-export const register = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+import authRoutes from './routes/authRoutes';
+import taskRoutes from './routes/taskRoutes';
 
-  const { name, email, password } = req.body;
-  try {
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
-    }
-    user = new User({ name, email, password });
+dotenv.config();
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+const app: Application = express();
 
-    await user.save();
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-    const payload = {
-      user: {
-        id: user._id,
-      },
-    };
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
 
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
-  } catch (err: any) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-export const login = async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  const { email, password } = req.body;
-  try {
-    let user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
-    }
-
-    const payload = {
-      user: {
-        id: user._id,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET as string,
-      { expiresIn: '1h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
-  } catch (err: any) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
+// Database connection
+mongoose
+  .connect(process.env.MONGO_URI as string, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  } as mongoose.ConnectOptions)
+  .then(() => {
+    console.log('MongoDB connected');
+    // Start server after DB connection
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Database connection error:', err);
+  });
