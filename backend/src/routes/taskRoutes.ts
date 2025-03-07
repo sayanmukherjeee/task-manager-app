@@ -8,10 +8,7 @@ const router = express.Router();
 // Create a new task
 router.post(
   '/',
-  [
-    authMiddleware,
-    [check('title', 'Title is required').not().isEmpty()]
-  ],
+  [authMiddleware, check('title', 'Title is required').not().isEmpty()],
   createTask
 );
 

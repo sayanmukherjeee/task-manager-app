@@ -2,10 +2,11 @@ import { Request, Response } from 'express';
 import Task from '../models/Task';
 import { validationResult } from 'express-validator';
 
-export const createTask = async (req: Request, res: Response) => {
+export const createTask = async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    res.status(400).json({ errors: errors.array() });
+    return;
   }
   const { title, description, deadline } = req.body;
   try {
@@ -13,7 +14,7 @@ export const createTask = async (req: Request, res: Response) => {
       title,
       description,
       deadline,
-      user: req.user!.id,
+      user: req.user!.id, // Assumes you have extended Express.Request with a 'user' property
     });
     const task = await newTask.save();
     res.json(task);
@@ -23,10 +24,9 @@ export const createTask = async (req: Request, res: Response) => {
   }
 };
 
-export const getTasks = async (req: Request, res: Response) => {
+export const getTasks = async (req: Request, res: Response): Promise<void> => {
   try {
     const tasks = await Task.find({ user: req.user!.id });
-    // Check deadlines to add warnings
     const currentDate = new Date();
     const tasksWithStatus = tasks.map((task) => {
       let status = task.completed ? 'completed' : 'pending';
@@ -52,12 +52,14 @@ export const getTasks = async (req: Request, res: Response) => {
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (req: Request, res: Response): Promise<void> => {
   const { title, description, deadline, completed } = req.body;
   try {
     let task = await Task.findOne({ _id: req.params.id, user: req.user!.id });
-    if (!task) return res.status(404).json({ msg: 'Task not found' });
-
+    if (!task) {
+      res.status(404).json({ msg: 'Task not found' });
+      return;
+    }
     task.title = title || task.title;
     task.description = description || task.description;
     task.deadline = deadline || task.deadline;
@@ -72,11 +74,12 @@ export const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const task = await Task.findOneAndDelete({ _id: req.params.id, user: req.user!.id });
     if (!task) {
-      return res.status(404).json({ msg: 'Task not found' });
+      res.status(404).json({ msg: 'Task not found' });
+      return;
     }
     res.json({ msg: 'Task removed' });
   } catch (err: any) {
